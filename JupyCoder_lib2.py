@@ -39,9 +39,11 @@ class JupyCoder():
         - create_code_cell: Create a code cell with new code lines
         - create_markdown: Create a markdown cell with new text (explanation, context)
         - update_last_cell: Update the last cell of the notebook
-        - update_cell: Update the cell at the index i
+        - update_last_markdown: Update the last markdown cell
+        - update_selected_cell: Update the selected code cell
+        - update_selected_markdown: Update the selected markdown
         - delete_last_cell: Delete the last cell
-        - delete_cell : Delete the cell at the index i
+        - delete_selected_cell : Delete the selected cell
         - explain_last_cell: Explain the last cell
         - summary_all: Create a summary of all the codes
 
@@ -142,7 +144,9 @@ class JupyCoder():
             prompt_augmentation =  """[INST]Ta tâche est d'améliorer la requête utilisateur en la réécrivant \
             pour qu'elle soit mieux comprise pour de la génération de code python. \
             Apportes toutes les informations nécessaires qui pourrait aider à générer du code python en relation avec: {query}. 
-            Ajoute bien si la requête doit "Créer", "Modifier la dernière cellule" ou "Supprimer la dernière cellulle".
+            Ajoute bien si la requête doit "Créer", "Modifier la dernière cellule", "Modifier la cellule sélectionnée, \
+            "Supprimer la cellule sélectionnée", "Supprimer la dernière cellule", "Expliquer la dernière cellule", \
+            ou "Résumer tout le notebook".
 
             Limites toi à une phrase.
             [/INST] 
@@ -155,7 +159,7 @@ class JupyCoder():
 
     def chain_summary(self, 
                       list_codes):
-            prompt_summary =  """[INST]Ton rôle est de résumer les commandes réalisée dans ce notebook. Les cellules de codes sont:
+            prompt_summary =  """[INST]Ton rôle est de résumer les commandes python réalisée dans ce notebook. Les cellules de codes sont:
             {codes}
             [/INST] 
 
@@ -292,17 +296,40 @@ class JupyCoder():
         last_cell = nb.cells[len(nb.cells)-1]
         return last_cell.source
     
+    def get_code_cell_to_update(self,
+                           nb_path):
+        #load notebook
+        nb = self.load_notebook(nb_path)
+        all_codes = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'code']
+        ind_update = [ind for ind, cell in enumerate(all_codes)  if '## A MODIFIER ##' in cell]
+        code = all_codes[ind_update]
+        return ind_update,code
+    
+    def get_markdown_cell_to_update(self,
+                           nb_path):
+        #load notebook
+        nb = self.load_notebook(nb_path)
+        all_markdowns = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'markdown']
+        ind_update = [ind for ind, cell in enumerate(all_markdowns)  if '## A MODIFIER ##' in cell]
+        markdown = all_markdowns[ind_update]
+
+        return ind_update,markdown    
+    
+    def get_cell_to_delete(self,
+                           nb_path):
+        #load notebook
+        nb = self.load_notebook(nb_path)
+        all_codes = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'code']
+        ind_delete = [ind for ind, cell in enumerate(all_codes)  if '## A SUPPRIMER ##' in cell]
+
+        return ind_delete
+    
     def get_all_cell(self,
                       nb_path):
         #load notebook
         nb = self.load_notebook(nb_path)
         #get last cell
-        all_codes = [
-            cell["source"] for cell in nb.cells
-            if cell.get('cell_type') == 'code'
-            and cell.get('execution_count') is None
-            and cell.get('metadata') == {}
-        ]
+        all_codes = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'code']
 
         return all_codes
     
@@ -316,7 +343,7 @@ class JupyCoder():
             list_codes = self.get_all_cell(self.path)
             history = list_codes[-5:]
             code=self.code_generation(query, history)
-            code = code.replace('\_', '_').replace('`',"")
+            code = code.replace('\_', '_').replace('`',"").replace("python", "")
             pattern =r'[=-]{2,}'
             clean_code = re.sub(pattern, '', code)
             pattern =r' {2,}'
@@ -334,20 +361,38 @@ class JupyCoder():
             code = self.get_last_cell(path) 
             print(code)
             upd_code = self.code_update(query, code)
-            upd_code = upd_code.replace('\_', '_').replace('`',"")
+            upd_code = upd_code.replace('\_', '_').replace('`',"").replace("python", "")
             pattern =r'[=-]{2,}'
             clean_code = re.sub(pattern, '', upd_code)
             pattern =r' {2,}'
             clean_code = re.sub(pattern, '', clean_code)
             self.update_last_cell(path, clean_code.strip())
-        elif "update_markdown" in router_action:
+        elif "update_last_markdown" in router_action:
             text = self.get_last_cell(path)
             upd_markdown = self.markdown_update(text)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', upd_markdown)
-            self.update_markdown(path, clean_text)        
+            self.update_markdown(path, clean_text)
+        elif "update_selected_cell" in router_action:
+            ind, code = self.get_code_cell_to_update(path).replace('## A MODIFIER ##', '')
+            print(code)
+            upd_code = self.code_update(query, code)
+            upd_code = upd_code.replace('\_', '_').replace('`',"").replace("python", "")
+            pattern =r'[=-]{2,}'
+            clean_code = re.sub(pattern, '', upd_code)
+            pattern =r' {2,}'
+            clean_code = re.sub(pattern, '', clean_code)
+            self.update_cell(path, clean_code.strip(), ind)             
+        elif "update_selected_markdown" in router_action:    
+            ind, text = self.get_markdown_cell_to_update(path).replace('## A MODIFIER ##', '')
+            upd_markdown = self.markdown_update(text)
+            pattern =r' {2,}'
+            clean_text = re.sub(pattern, '', upd_markdown)
+            self.update_cell(path, clean_text, ind)    
         elif  "delete_last_cell" in router_action:
             self.delete_last_cell(path)
+        elif "delete_selected_cell" in router_action:
+            self.delete_cell(path, self.get_cell_to_delete(path))
         elif "explain_last_cell" in router_action:
             code = self.get_last_cell(path)
             explication = self.code_explanation(code)
