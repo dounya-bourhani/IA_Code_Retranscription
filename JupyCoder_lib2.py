@@ -413,8 +413,14 @@ class JupyCoder():
         self.tools(action, query, self.path)
     
     def last_version(self) -> None:
-        #load notebook
-        nb = self.load_notebook(self.path)
-        #get last cell
-        last_cell = nb.cells[len(nb.cells)-1]
-        return last_cell.source
+        #get the name of the notebook
+        notebook_name = os.path.basename(self.path)
+        #construct the backup path
+        backup_path = os.path.join("backup", notebook_name)
+
+        #get our file
+        with open(backup_path, 'r', encoding='utf-8') as f:
+            nb = nbformat.read(f, as_version=4)
+
+        #save our notebbok with our old version
+        self.save_notebook(self.path, nb)
