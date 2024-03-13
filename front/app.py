@@ -1,5 +1,6 @@
 import streamlit as st
 import speech_recognition as sr
+import os
 
 # Function to transcribe speech to text
 def transcribe_speech():
@@ -38,6 +39,20 @@ def display_history():
         for idx, request in enumerate(reversed_history):
             st.write(f"- {request}")
 
+
+# Définition d'un composant personnalisé pour récupérer le chemin complet d'un fichier
+def file_path_uploader(label, file_types=".ipynb"):
+    """
+    Affiche un file_uploader et retourne le chemin du fichier sélectionné.
+    """
+    file = st.file_uploader(label, type=file_types)
+    if file is not None:
+        return file.name, file
+    return None, None
+
+
+
+
 def main():
     base = "dark"
     primaryColor = "#0079F7"
@@ -50,7 +65,19 @@ def main():
         layout="wide",
     )
 
+
+    ######
     st.title("Application voice-to-text Notebook Assistant")
+
+
+    # Utilisation du composant personnalisé
+    file_name, file_content = file_path_uploader("Sélectionnez un fichier")
+
+    # Affichage du chemin complet du fichier
+    if file_content is not None:
+        st.write("Chemin complet du fichier:", os.path.abspath(file_name))
+
+
 
     # Organize layout with columns and rows
     col1, col2 = st.columns([2, 4])
