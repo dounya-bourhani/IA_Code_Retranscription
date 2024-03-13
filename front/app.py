@@ -26,14 +26,17 @@ def transcribe_speech():
 def save_to_history(request):
     if 'history' not in st.session_state:
         st.session_state['history'] = []
-    st.session_state['history'].append(request)
+    if request:
+        st.session_state['history'].append(request)
 
 # Function to display history tab
 def display_history():
     if 'history' in st.session_state:
         st.subheader("Historique")
-        for idx, request in enumerate(st.session_state['history']):
-            st.write(f"{idx + 1}. {request}")
+        # Reverse the order of the history list
+        reversed_history = reversed(st.session_state['history'])
+        for idx, request in enumerate(reversed_history):
+            st.write(f"- {request}")
 
 def main():
     base = "dark"
@@ -50,7 +53,7 @@ def main():
     st.title("Application voice-to-text Notebook Assistant")
 
     # Organize layout with columns and rows
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([2, 4])
 
     with col1:
         st.subheader("Enregistrement voix")
@@ -59,13 +62,19 @@ def main():
             save_to_history(text)
 
     with col2:
-        st.subheader("Requête Ecrit")
-        text_input = st.text_area("Insérer du texte ici :", "")
-        if st.button("Envoyer"):
-            if text_input:
-                st.write("Texte inséré :", text_input)
-                save_to_history(text_input)
+        if "my_text" not in st.session_state:
+                st.session_state.my_text = ""
 
+        def submit():
+            st.session_state.my_text = st.session_state.widget
+            st.session_state.widget = ""
+
+        st.text_input("Enter text here", key="widget", on_change=submit)
+        st.button("Submit", on_click=submit)
+
+        my_text = st.session_state.my_text
+        save_to_history(my_text)
+    
     # Display history below the columns
     display_history()
 
