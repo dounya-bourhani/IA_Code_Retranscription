@@ -1,39 +1,28 @@
 import streamlit as st
-from streamlit_mic_recorder import mic_recorder, speech_to_text
+import speech_recognition as sr
 
-st.title('Vocal to notebook')
+def transcribe_speech():
+    recognizer = sr.Recognizer()
 
-def handle_audio_recording():
-    audio = mic_recorder(start_prompt="⏺️ Start recording", stop_prompt="⏹️ Stop recording", key='recorder')
-    if audio:
-        st.audio(audio['bytes'], format='audio/wav')
+    with sr.Microphone() as source:
+        st.write("Dites quelque chose...")
+        recognizer.adjust_for_ambient_noise(source)
+        audio_data = recognizer.listen(source)
 
-def handle_speech_to_text():
-    text = speech_to_text(language='fr', start_prompt="Start recording", stop_prompt="Stop recording", just_once=False, key='STT')
-    if text:
-        st.write("Converted text:", text)
+    try:
+        st.write("Analyse de l'audio...")
+        text = recognizer.recognize_google(audio_data, language='fr-FR')
+        st.write("Vous avez dit : ", text)
+    except sr.UnknownValueError:
+        st.write("Impossible de comprendre l'audio")
+    except sr.RequestError as e:
+        st.write("Erreur lors de la requête à l'API Google : ", e)
 
-state = st.session_state
+def main():
+    st.title("Application de transcription de la parole")
 
-if 'text_received' not in state:
-    state.text_received = []
+    if st.button("Commencer l'enregistrement"):
+        transcribe_speech()
 
-st.header("Convert speech to text:")
-handle_speech_to_text()
-
-st.header("Record your voice, and play the recorded audio:")
-handle_audio_recording()
-
-# Display previously converted texts
-if state.text_received:
-    st.header("Previously Converted Texts:")
-    for text in state.text_received:
-        st.text(text)
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    main()
