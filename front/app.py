@@ -31,26 +31,46 @@ def save_to_history(request):
         st.session_state['history'].append(request)
 
 # Function to display history tab
+# Fonction pour afficher l'historique
 def display_history():
-    if 'history' in st.session_state:
-        st.subheader("Historique")
-        # Reverse the order of the history list
-        reversed_history = reversed(st.session_state['history'])
-        for idx, request in enumerate(reversed_history):
-            st.write(f"- {request}")
+    st.subheader("Historique")
 
+    # Vérifie si l'historique existe et n'est pas vide
+    if 'history' in st.session_state and st.session_state['history']:
+
+        # Inverse l'ordre de la liste d'historique
+        reversed_history = reversed(st.session_state['history'])
+        for request in reversed_history:
+            if request.strip():
+                st.write(f"- {request}")
+
+    else:
+        st.write("L'historique est vide.")
 
 # Définition d'un composant personnalisé pour récupérer le chemin complet d'un fichier
 def file_path_uploader(label, file_types=".ipynb"):
     """
     Affiche un file_uploader et retourne le chemin du fichier sélectionné.
     """
-    file = st.file_uploader(label, type=file_types)
-    if file is not None:
-        return file.name, file
+    path = st.file_uploader(label, type=file_types)
+    if path is not None:
+        return path.name, path
     return None, None
 
+def download_text():
+    if 'history' in st.session_state and st.session_state['history']:
+        # Obtient l'historique depuis la session
+        history = st.session_state['history']
 
+        # Construit le contenu du fichier texte dans la mémoire
+        file_content = "\n".join(request for request in history if request.strip())
+        # Ajoute un bouton de téléchargement pour le contenu du fichier texte
+        st.download_button(
+            label="Télécharger l'historique",
+            data=file_content.encode('utf-8'),
+            file_name="historique.txt",
+            mime='text/plain'
+        )
 
 
 def main():
@@ -104,6 +124,7 @@ def main():
     
     # Display history below the columns
     display_history()
+    download_text()
 
 if __name__ == "__main__":
     main()
