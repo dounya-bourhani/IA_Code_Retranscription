@@ -1,6 +1,7 @@
 import streamlit as st
 import speech_recognition as sr
 
+# Function to transcribe speech to text
 def transcribe_speech():
     recognizer = sr.Recognizer()
 
@@ -13,16 +14,62 @@ def transcribe_speech():
         st.write("Analyse de l'audio...")
         text = recognizer.recognize_google(audio_data, language='fr-FR')
         st.write("Vous avez dit : ", text)
+        return text
     except sr.UnknownValueError:
         st.write("Impossible de comprendre l'audio")
+        return ""
     except sr.RequestError as e:
         st.write("Erreur lors de la requête à l'API Google : ", e)
+        return ""
 
+# Function to save request to history
+def save_to_history(request):
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
+    st.session_state['history'].append(request)
+
+# Function to display history tab
+def display_history():
+    if 'history' in st.session_state:
+        st.subheader("Historique")
+        for idx, request in enumerate(st.session_state['history']):
+            st.write(f"{idx + 1}. {request}")
+
+
+############
+            
+            
 def main():
-    st.title("Application de transcription de la parole")
+    base = "dark"
+    primaryColor = "#0079F7"
+    secondaryBackgroundColor = "#25262d"
+    font = "monospace"
 
-    if st.button("Commencer l'enregistrement"):
-        transcribe_speech()
+    st.set_page_config(
+        page_title="Voice-to-text",
+        page_icon="🎙️",
+        layout="wide",
+    )
+
+    st.title("Application voice-to-text Notebook Assistant")
+
+    # Create tabs
+    tabs = ["Enregistrement voix", "Requête Ecrit", "Historique"]
+    selected_tab = st.radio("Sélectionnez une option :", tabs)
+
+    # Process selected tab
+    if selected_tab == "Enregistrement voix":
+        if st.button("🎙️ Générer une requête"):
+            text = transcribe_speech()
+            save_to_history(text)
+    elif selected_tab == "Requête Ecrit":
+        text_input = st.text_area("Insérer du texte ici :", "")
+        if st.button("Envoyer"):
+            if text_input:
+                st.write("Texte inséré :", text_input)
+                save_to_history(text_input)
+    elif selected_tab == "Historique":
+        display_history()
 
 if __name__ == "__main__":
     main()
