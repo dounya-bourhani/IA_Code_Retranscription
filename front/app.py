@@ -35,10 +35,6 @@ def display_history():
         for idx, request in enumerate(st.session_state['history']):
             st.write(f"{idx + 1}. {request}")
 
-
-############
-            
-            
 def main():
     base = "dark"
     primaryColor = "#0079F7"
@@ -53,23 +49,25 @@ def main():
 
     st.title("Application voice-to-text Notebook Assistant")
 
-    # Create tabs
-    tabs = ["Enregistrement voix", "Requête Ecrit", "Historique"]
-    selected_tab = st.radio("Sélectionnez une option :", tabs)
+    # Organize layout with columns and rows
+    col1, col2 = st.columns([2, 1])
 
-    # Process selected tab
-    if selected_tab == "Enregistrement voix":
+    with col1:
+        st.subheader("Enregistrement voix")
         if st.button("🎙️ Générer une requête"):
             text = transcribe_speech()
             save_to_history(text)
-    elif selected_tab == "Requête Ecrit":
+
+    with col2:
+        st.subheader("Requête Ecrit")
         text_input = st.text_area("Insérer du texte ici :", "")
         if st.button("Envoyer"):
             if text_input:
                 st.write("Texte inséré :", text_input)
                 save_to_history(text_input)
-    elif selected_tab == "Historique":
-        display_history()
+
+    # Display history below the columns
+    display_history()
 
 if __name__ == "__main__":
     main()
