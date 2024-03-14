@@ -130,18 +130,18 @@ def assistant():
     st.sidebar.button("Valider", on_click=submit_token)
 
     if len(st.session_state.token) > 2:
-        st.sidebar.write("✅ Token activé")
-        llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
-                                huggingfacehub_api_token=st.session_state.token,
-                                model_kwargs={"temperature": 0.1, "max_new_tokens": 500})
-    
-        JupyAgent = JupyCoder(st.session_state.path, 
-                          llm)
+        st.sidebar.write("✅ Token activé") 
+        if 'path' in st.session_state:
+            llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
+                                    huggingfacehub_api_token=st.session_state.token,
+                                    model_kwargs={"temperature": 0.1, "max_new_tokens": 500})
+            JupyAgent = JupyCoder(st.session_state.path, 
+                                    llm)
         
     
 
     ## Chatbot
-    if ('path' not in st.session_state) or (len(st.session_state.token) < 2):
+    if (len(st.session_state.token) < 2) or ('path' not in st.session_state):
         st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook' et de faire valider votre Token HuggingFace avant de procéder.")
     else:
         st.title("Speech-to-text Notebook Assistant")
@@ -181,7 +181,7 @@ def assistant():
                 print("send")
                 JupyAgent.make_action(text_input)
     
-    if len(st.session_state.token) > 2:
+    if (len(st.session_state.token) > 2) and ('path' in st.session_state):
     # Display history below the columns
         display_history(agent=JupyAgent)
 
