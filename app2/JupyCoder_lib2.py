@@ -13,11 +13,9 @@ import pandas as pd
 import numpy as np
 # On lit nos variables environnments avec nos clés APIs
 import os
-from dotenv import load_dotenv, find_dotenv
 
 import re
 
-_ = load_dotenv(find_dotenv())
 
 class JupyCoder():
     def __init__(self, 
