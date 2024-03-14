@@ -29,7 +29,7 @@ def main():
        st.write("""Que ce soit par le biais de requêtes textuelles écrites à la main...""")
     
     with col2:
-       st.image("icons/reco_vocale.jpg", width=500)
+       st.image("app/icons/reco_vocale.jpg", width=500)
        st.write("""ou de requêtes détectées par reconnaissance vocale...""")
                  
     st.write("""les utilisateurs peuvent interagir avec l'assistant pour 
