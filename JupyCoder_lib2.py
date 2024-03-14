@@ -29,36 +29,47 @@ class JupyCoder():
 
     def chain_router(self, 
                      query:str) -> str:
-        prompt_router =  """[[INST] Return only the name of the function to choose based on the query.
-        The user have to explicitely ask to update in order to use update_last_cell or update_cell, otherwise, always create a new cell.
-        The user have to explicitely ask for a markddown to use create_markdown, otherwise, use create_code_cell.
-        Does not add explanation. Limit yourself to just the name of the query.
+        prompt_router =  """[[INST] Identifie l'action à réaliser en fonction de "QUERY" puis donnes le nom de la fonction à choisir.
+        L'utilisateur doit explicitement demander une mise à jour pour utiliser update_last_cell ou update_cell, sinon, il faut toujours créer une nouvelle cellule.
+        L'utilisateur doit demander explicitement un markdown pour utiliser une cellule en relation avec les markdowns.
+        Si l'utilisateur précise une cellule avec une clé JupyCoder, utilises update_selected_cell, update_selected_markdown ou delete_selected_cell.
+        N'ajoute pas d'explication. Se limiter au nom de la requête.
         
-        Here are your options:
-        Function list: 
-        - create_code_cell: Create a code cell with new code lines
-        - create_markdown: Create a markdown cell with new text (explanation, context)
-        - update_last_cell: Update the last cell of the notebook
-        - update_last_markdown: Update the last markdown cell
-        - update_selected_cell: Update the selected code cell
-        - update_selected_markdown: Update the selected markdown
-        - delete_last_cell: Delete the last cell
-        - delete_selected_cell : Delete the selected cell
-        - explain_last_cell: Explain the last cell
-        - summary_all: Create a summary of all the codes
+        Voici les fonctions disponibles pour créer une cellule :
+        - create_code_cell : Créer une cellule de code avec de nouvelles lignes de code
+        - create_markdown : Créer une cellule markdown avec du nouveau texte (explication, contexte)
+        
+        Voici les fonctions disponibles pour modifier une cellule: 
+        - update_last_cell : Mise à jour de la dernière cellule du carnet
+        - update_last_markdown : Mise à jour de la dernière cellule markdown
+        - update_selected_cell : Met à jour de la cellule de code qui a la clé JupyCoder
+        - update_selected_markdown : Met à jour du markdown qui a la clé JupyCoder
+        
+        Voici les fonctions disponibles pour supprimer une cellule:
+        - delete_last_cell : Supprime la dernière cellule
+        - delete_selected_cell : Supprime la cellule qui a la clé JupyCoder
 
+        Voici les fonctions pour expliquer une cellule:
+        - explain_last_cell : Explique la dernière cellule
+        - explain_selected_cell : Explique la cellule qui a la clé JupyCoder
+
+        Voici les fonctions pour résumer le notebook.
+        - summary_all : Créer un résumé de tous le notebook
+
+
+        
         "QUERY": 
         {query}
-        
-        Limit to one word.
-        [/INST] 
 
-        Name of the function to choose:
+        Limites toi à un mot. 
+        [/INST] 
+        
+        Nom de la fonction à choisir:
         """
         prompt_router_templ = PromptTemplate(input_variables=["query"], template=prompt_router)
         chain_router = LLMChain(prompt=prompt_router_templ, llm=self.llm)
         answer = chain_router.invoke({"query": query})
-        return answer["text"].split("choose:")[1].strip().replace('\_', '_')
+        return answer["text"].split("choisir:")[1].strip().replace('\_', '_')
     
     def code_generation(self, 
                         query:str,
@@ -68,14 +79,21 @@ class JupyCoder():
         Voici l'historique des dernières commandes, si besoin, sers en toi pour améliorer le code: 
         {history}
 
-        Ajoutes toujours du texte supplémentaire comme commentaire. Limiter ta réponse à des lignes de code.
+        Ajoutes du texte supplémentaire comme commentaire si besoin. 
+        Limite ta réponse à des lignes de code.
         [/INST] 
 
         Le code python est:"""
         prompt_coder_templ = PromptTemplate(input_variables=["query", "history"], template=prompt_coder)
         chain_coder = LLMChain(prompt=prompt_coder_templ, llm=self.llm)
         answer = chain_coder.invoke({"query": query, "history": history})
-        return answer["text"].split("est:")[1].strip()
+        response = answer["text"].split("est:")[1].strip()
+        if 'Explanation' in response:
+            response = response.split("Explanation:")[0].strip()
+        elif 'Notes' in response:
+            response = response.split("Notes:")[0].strip()
+        return response
+    
     
     def markdown_generation(self,
                             query:str) -> str:
@@ -125,12 +143,13 @@ class JupyCoder():
                     query: str, 
                     code:str) -> str:
             prompt_explanation =  """[INST]Update the code to respect the following query : {query}.
-            Do not add additional text.
+            Do not add additional text or explanation. Add commentaries if necessary.
             Do not explain the arguments of the code and do not explain the change lines. Do not use a list.
             Remove all the sentences which are not code lines.
             
             {code}
             
+            Limit yourself to the code lines. 
             [/INST] 
 
             Updated Code:"""
@@ -144,9 +163,6 @@ class JupyCoder():
             prompt_augmentation =  """[INST]Ta tâche est d'améliorer la requête utilisateur en la réécrivant \
             pour qu'elle soit mieux comprise pour de la génération de code python. \
             Apportes toutes les informations nécessaires qui pourrait aider à générer du code python en relation avec: {query}. 
-            Ajoute bien si la requête doit "Créer", "Modifier la dernière cellule", "Modifier la cellule sélectionnée, \
-            "Supprimer la cellule sélectionnée", "Supprimer la dernière cellule", "Expliquer la dernière cellule", \
-            ou "Résumer tout le notebook".
 
             Limites toi à une phrase.
             [/INST] 
@@ -159,12 +175,14 @@ class JupyCoder():
 
     def chain_summary(self, 
                       list_codes):
-            prompt_summary =  """[INST]Ton rôle est de résumer les commandes python réalisée dans ce notebook. Les cellules de codes sont:
+            prompt_summary =  """[INST]Ton rôle est de résumer  en language naturel les commandes python réalisée dans ce notebook:
             {codes}
+
+            Limite toi à un paragraphe. 
             [/INST] 
 
             Réponse:
-            Ce notebook contient"""
+            Dans ce notebook,"""
             prompt_summary_templ = PromptTemplate(input_variables=["codes"], template=prompt_summary)
             chain_summary = LLMChain(prompt=prompt_summary_templ, llm=self.llm)
             answer = chain_summary.invoke({"codes": list_codes})
@@ -240,12 +258,14 @@ class JupyCoder():
     def update_cell(self,nb_path, content, cell_id):
         #load notebook
         nb = self.load_notebook(nb_path)
-        if cell_id < len(nb.cells):
+        if cell_id[0] < len(nb.cells):
             #get the cell
-            cell = nb.cells[cell_id-1]
+            cell = nb.cells[cell_id[0]]
+            print(cell)
             #update the cell
             cell.source = content
             #save the notebook
+            print(cell)
             self.save_notebook(nb_path, nb)
         else:
             print("L'index de cellule spécifié est invalide.")
@@ -279,10 +299,11 @@ class JupyCoder():
     def delete_cell(self,nb_path, cell_id):
         #load notebook
         nb = self.load_notebook(nb_path)
+        print(cell_id)
         
-        if cell_id > 0 and cell_id <= len(nb.cells):
+        if cell_id[0] > 0 and cell_id[0] <= len(nb.cells):
             #delete the cell
-            del nb.cells[cell_id-1]
+            del nb.cells[cell_id[0]]
             #save the notebook
             self.save_notebook(nb_path, nb)
         else:
@@ -296,34 +317,35 @@ class JupyCoder():
         last_cell = nb.cells[len(nb.cells)-1]
         return last_cell.source
     
-    def get_code_cell_to_update(self,
+    def get_cell_to_update(self,
                            nb_path):
         #load notebook
         nb = self.load_notebook(nb_path)
-        all_codes = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'code']
+        all_codes = [cell["source"] for cell in nb.cells]
         ind_update = [ind for ind, cell in enumerate(all_codes)  if '## A MODIFIER ##' in cell]
-        code = all_codes[ind_update]
-        return ind_update,code
-    
-    def get_markdown_cell_to_update(self,
-                           nb_path):
-        #load notebook
-        nb = self.load_notebook(nb_path)
-        all_markdowns = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'markdown']
-        ind_update = [ind for ind, cell in enumerate(all_markdowns)  if '## A MODIFIER ##' in cell]
-        markdown = all_markdowns[ind_update]
-
-        return ind_update,markdown    
+        print(ind_update)
+        code = all_codes[ind_update[0]]
+        return ind_update,code 
     
     def get_cell_to_delete(self,
                            nb_path):
         #load notebook
         nb = self.load_notebook(nb_path)
-        all_codes = [cell["source"] for cell in nb.cells if cell.get('cell_type') == 'code']
+        all_codes = [cell["source"] for cell in nb.cells]
         ind_delete = [ind for ind, cell in enumerate(all_codes)  if '## A SUPPRIMER ##' in cell]
 
         return ind_delete
     
+    def get_cell_to_explain(self, 
+                            nb_path):
+        
+        #load notebook
+        nb = self.load_notebook(nb_path)
+        all_codes = [cell["source"] for cell in nb.cells]
+        ind_update = [ind for ind, cell in enumerate(all_codes)  if '## A EXPLIQUER ##' in cell]
+        code = all_codes[ind_update[0]]
+        return code 
+        
     def get_all_cell(self,
                       nb_path):
         #load notebook
@@ -374,7 +396,8 @@ class JupyCoder():
             clean_text = re.sub(pattern, '', upd_markdown)
             self.update_markdown(path, clean_text)
         elif "update_selected_cell" in router_action:
-            ind, code = self.get_code_cell_to_update(path).replace('## A MODIFIER ##', '')
+            ind, code = self.get_cell_to_update(path)
+            code = code.replace('## A MODIFIER ##', '')
             print(code)
             upd_code = self.code_update(query, code)
             upd_code = upd_code.replace('\_', '_').replace('`',"").replace("python", "")
@@ -382,10 +405,12 @@ class JupyCoder():
             clean_code = re.sub(pattern, '', upd_code)
             pattern =r' {2,}'
             clean_code = re.sub(pattern, '', clean_code)
+            print(clean_code)
             self.update_cell(path, clean_code.strip(), ind)             
         elif "update_selected_markdown" in router_action:    
-            ind, text = self.get_markdown_cell_to_update(path).replace('## A MODIFIER ##', '')
-            upd_markdown = self.markdown_update(text)
+            ind, text = self.get_cell_to_update(path)
+            text= text.replace('## A MODIFIER ##', '')
+            upd_markdown = self.markdown_update(text, query)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', upd_markdown)
             self.update_cell(path, clean_text, ind)    
@@ -399,17 +424,25 @@ class JupyCoder():
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', explication)
             self.create_markdown(path, clean_text)
+        elif "explain_selected_cell" in router_action:
+            code = self.get_cell_to_explain(path)
+            code = code.replace('## A EXPLIQUER ##', '')
+            explication = self.code_explanation(code)
+            pattern =r' {2,}'
+            clean_text = re.sub(pattern, '', explication)
+            self.create_markdown(path, clean_text)
         elif "summary_all" in router_action:
             list_codes = self.get_all_cell(self.path)
-            combined_code = '\n'.join(cell['source'] for cell in list_codes)
+            combined_code = '\n'.join(cell for cell in list_codes)
             resume = self.chain_summary(combined_code)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', resume)
             self.create_markdown(path, clean_text)
     
     def make_action(self, query) -> None:
-        query_augmented = self.chain_query_augmentation(query)
-        action = self.chain_router(query_augmented)
+
+        print(query)
+        action = self.chain_router(query)
         self.tools(action, query, self.path)
     
     def last_version(self) -> None:
