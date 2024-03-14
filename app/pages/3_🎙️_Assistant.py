@@ -89,14 +89,14 @@ def assistant():
 
 
     st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
-    
+
     st.sidebar.button("Valider", on_click=submit_token)
     if "token" in st.session_state: 
         st.sidebar.write("✅ Token activé")
     
 
     ## Chatbot
-    if 'file' not in st.session_state:
+    if 'path' not in st.session_state:
             st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
     else:
         st.title("Speech-to-text Notebook Assistant")
@@ -126,7 +126,7 @@ def assistant():
         
 
         # Print current notebook
-        st.write("Notebook :", st.session_state['file'])
+        st.write("Directory :", st.session_state['path'])
 
 
         # Display history below the columns
