@@ -130,9 +130,10 @@ def assistant():
                 if st.session_state.widget:
                     st.session_state.my_text = st.session_state.widget
                     save_to_history(st.session_state.my_text)
-
-            text_input = st.text_input("Insérez du texte ici :", key="widget", on_change=submit)
-            button_clicked = st.button("Envoyer", on_click=submit)
+            with st.form("my_form"):
+                text_input = st.text_input("Insérez du texte ici :", key="widget")
+                button_clicked = st.form_submit_button("Envoyer")
+                submit()
             print(len(text_input))
             if len(text_input) > 3 and button_clicked:
                 print("send")
