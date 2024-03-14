@@ -37,14 +37,22 @@ def save_to_history(request):
         st.session_state['history'].append(request)
 
 def display_history():
-    if 'history' in st.session_state:
-        col1, col2, col3 = st.columns([6, 1, 3])
+        col1, col2, col3 = st.columns([7, .5, 3])
         # Create a container with a border
         with col1:
+            with st.container():
+                st.markdown('<br></br>', unsafe_allow_html=True)
+                col_d, col_b = st.columns([4, 1])
+                with col_d:
+                    st.markdown("Pour retourner en arrière dans le notebook, cliquez sur le bouton:")
+                with col_b:
+                    if st.button("⚠️ Précédent"):
+                        JupyAgent.last_version()
+                st.markdown('<br></br>', unsafe_allow_html=True)
             with st.container(border = False):
                 st.markdown("---")  # Add a horizontal line for separation
                 # Create a horizontal layout
-                header_col, download_col = st.columns([9, 3])
+                header_col, download_col = st.columns([12, 3])
 
                 # Display the "Historique" title
                 with header_col:
@@ -52,29 +60,30 @@ def display_history():
 
                 # Display the download button in the right column
                 with download_col:
-                    download_history()
-
+                    if 'history' in st.session_state:
+                        download_history()
+                if 'history' in st.session_state:
                 # Reverse the order of the history list
-                reversed_history = reversed(st.session_state['history'])
-                for idx, request in enumerate(reversed_history):
-                    # Use columns to align the copy button to the right side
-                    col1a, col1b = st.columns([11.5, 1.5])
-                    # Display the request
-                    with col1a:
-                        st.write(f"{request}")
-                        st.markdown("---")
-                    # Add a button to copy the request to clipboard
-                    if col1b.button(f"Copier", key=f"copy_button_{idx}"):
-                        pyperclip.copy(request)
+                    reversed_history = reversed(st.session_state['history'])
+                    for idx, request in enumerate(reversed_history):
+                        # Use columns to align the copy button to the right side
+                        col1a, col1b = st.columns([12, 2])
+                        # Display the request
+                        with col1a:
+                            st.write(f"{request}")
+                            st.markdown("---")
+                        # Add a button to copy the request to clipboard
+                        if col1b.button(f"Copier", key=f"copy_button_{idx}"):
+                            pyperclip.copy(request)
 
         with col3:
             st.subheader("Aide :")
             st.markdown("<b>Création d'une cellule / markdown</b>", unsafe_allow_html=True)
-            st.text("• Créée une cellule ...")
-            st.text("• Créée un markdown ...")
+            st.text("• Crée une cellule ...")
+            st.text("• Crée un markdown ...")
             st.markdown("""
                         <b>Requête sur une cellule / markdown spécifique</b><br>
-                        <span style='font-size: 12px;'><i>Clé possibles : ## A MODIFIER ## ; ## A SUPPRIMER ## ; ## A EXPLIQUER ##</i></span>""", unsafe_allow_html=True)
+                        <span style='font-size: 12px;'><i>Clé Jupycoder possibles : ## A MODIFIER ## ; ## A SUPPRIMER ## ; ## A EXPLIQUER ##</i></span>""", unsafe_allow_html=True)
             st.text("• Modifie ... avec la clé Jupycoder")
             st.text("• Supprime ... avec la clé Jupycoder")
             st.text("• Explique ... avec la clé Jupycoder")
@@ -93,7 +102,7 @@ def download_history():
         history_str = '\n'.join(history)
         # Prompt the user to download the history as a text file
         st.download_button(
-            label="Télécharger l'historique",
+            label="Télécharger",
             data=history_str,
             file_name='history.txt',
             mime='text/plain',
@@ -110,8 +119,8 @@ def assistant():
     
     ## sidebar token insert
     def submit_token():
-        if "token" not in st.session_state:
-                st.session_state.token = ""
+        #if "token" not in st.session_state:
+        #        st.session_state.token = ""
         if st.session_state.token_input:
             st.session_state.token = st.session_state.token_input
 
@@ -135,7 +144,9 @@ def assistant():
 
     ## Chatbot
     if 'path' not in st.session_state:
-            st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
+        st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
+    elif len(st.session_state.token) < 2:
+        st.header("👈 Merci de faire valider votre Token HuggingFace")
     else:
         st.title("Speech-to-text Notebook Assistant")
         st.markdown("---")
@@ -166,22 +177,13 @@ def assistant():
                     st.session_state.my_text = st.session_state.widget
                     save_to_history(st.session_state.my_text)
             with st.form("my_form"):
-                text_input = st.text_input("Insérez du texte ici :", key="widget")
+                text_input = st.text_area("Insérez du texte ici :", key="widget")
                 button_clicked = st.form_submit_button("Envoyer")
                 submit()
             
             if len(text_input) > 3 and button_clicked:
                 print("send")
                 JupyAgent.make_action(text_input)
-        
-        st.markdown('<br></br>', unsafe_allow_html=True)
-        col3, col4 = st.columns([4, 1])
-        with col3:
-            st.markdown("Pour retourner en arrière dans le notebook, cliquez sur le bouton:")
-        with col4:
-            if st.button("⚠️ Précédent"):
-                JupyAgent.last_version()
-        st.markdown('<br></br>', unsafe_allow_html=True)
             
         # Display history below the columns
         display_history()
