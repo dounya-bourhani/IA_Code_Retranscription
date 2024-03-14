@@ -141,10 +141,8 @@ def assistant():
     
 
     ## Chatbot
-    if 'path' not in st.session_state:
-        st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
-    elif len(st.session_state.token) < 2:
-        st.header("👈 Merci de faire valider votre Token HuggingFace")
+    if ('path' not in st.session_state) or (len(st.session_state.token) < 2):
+        st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook' et de faire valider votre Token HuggingFace avant de procéder.")
     else:
         st.title("Speech-to-text Notebook Assistant")
         st.markdown("---")
@@ -174,14 +172,14 @@ def assistant():
                 if st.session_state.widget:
                     st.session_state.my_text = st.session_state.widget
                     save_to_history(st.session_state.my_text)
-        with st.form("my_form"):
-            text_input = st.text_area("Insérez du texte ici :", key="widget")
-            button_clicked = st.form_submit_button("Envoyer")
-            submit()
-        
-        if len(text_input) > 3 and button_clicked:
-            print("send")
-            JupyAgent.make_action(text_input)
+            with st.form("my_form"):
+                text_input = st.text_area("Insérez du texte ici :", key="widget")
+                button_clicked = st.form_submit_button("Envoyer")
+                submit()
+            
+            if len(text_input) > 3 and button_clicked:
+                print("send")
+                JupyAgent.make_action(text_input)
     
     if len(st.session_state.token) > 2:
     # Display history below the columns
