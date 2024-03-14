@@ -119,8 +119,6 @@ def assistant():
     
     ## sidebar token insert
     def submit_token():
-        #if "token" not in st.session_state:
-        #        st.session_state.token = ""
         if st.session_state.token_input:
             st.session_state.token = st.session_state.token_input
 
@@ -184,9 +182,10 @@ def assistant():
         if len(text_input) > 3 and button_clicked:
             print("send")
             JupyAgent.make_action(text_input)
-        
+    
+    if len(st.session_state.token) > 2:
     # Display history below the columns
-    display_history(agent=JupyAgent)
+        display_history(agent=JupyAgent)
 
 
 
