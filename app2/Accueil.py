@@ -11,19 +11,6 @@ def main():
 
     st.header("Bienvenue sur Code Generation Assistant")
 
-    ## sidebar token insert
-    def submit_token():
-        if "token" not in st.session_state:
-                st.session_state.token = ""
-        if st.session_state.token_input:
-            st.session_state.token = st.session_state.token_input
-            st.session_state.token_input = ""
-
-    #st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", type='password')
-    st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
-    st.sidebar.button("Valider", on_click=submit_token)
-    if "token" in st.session_state: 
-        st.sidebar.write("✅ Token activé")
     
 
 

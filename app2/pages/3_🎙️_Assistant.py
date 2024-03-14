@@ -63,9 +63,9 @@ def display_history():
 def download_history():
     if 'history' in st.session_state:
         # Get the reversed history
-        reversed_history = reversed(st.session_state['history'])
+        history = st.session_state['history']
         # Create a string with the reversed history
-        history_str = '\n'.join(reversed_history)
+        history_str = '\n'.join(history)
         # Prompt the user to download the history as a text file
         st.download_button(
             label="Télécharger l'historique",
@@ -90,19 +90,22 @@ def assistant():
         if st.session_state.token_input:
             st.session_state.token = st.session_state.token_input
 
+    if "token" not in st.session_state:
+        st.session_state.token = ""
+
     st.sidebar.button("Valider", on_click=submit_token)
 
-    hf_api_key = st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
-    if len(hf_api_key) > 2:
-        print(hf_api_key)
+    st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
+    
+    if len(st.session_state.token) > 2:
+        st.sidebar.write("✅ Token activé")
         llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
-                                huggingfacehub_api_token=hf_api_key,
+                                huggingfacehub_api_token=st.session_state.token,
                                 model_kwargs={"temperature": 0.1, "max_new_tokens": 500})
     
         JupyAgent = JupyCoder(st.session_state.path, 
                           llm)
-    if "token" in st.session_state: 
-        st.sidebar.write("✅ Token activé")
+        
     
 
     ## Chatbot
