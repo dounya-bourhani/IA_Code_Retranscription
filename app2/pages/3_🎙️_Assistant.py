@@ -38,27 +38,34 @@ def save_to_history(request):
 
 def display_history():
     if 'history' in st.session_state:
-        # Create a horizontal layout
-        header_col, download_col = st.columns([9.7,3])
+        col1, col2 = st.columns([7, 3.5])
+        # Create a container with a border
+        with col1:
+            with st.container(border = False):
+                st.markdown("---")  # Add a horizontal line for separation
+                # Create a horizontal layout
+                header_col, download_col = st.columns([9, 3])
 
-        # Display the "Historique" title
-        with header_col:
-            st.subheader("Historique :")
+                # Display the "Historique" title
+                with header_col:
+                    st.subheader("Historique :")
 
-        # Display the download button in the right column
-        with download_col:
-            download_history()
+                # Display the download button in the right column
+                with download_col:
+                    download_history()
 
-        # Reverse the order of the history list
-        reversed_history = reversed(st.session_state['history'])
-        for idx, request in enumerate(reversed_history):
-            # Use columns to align the copy button to the right side
-            col1, col2 = st.columns([10, 1.1])
-            # Display the request
-            col1.write(f"- {request}")
-            # Add a button to copy the request to clipboard
-            if col2.button(f"Copier", key=f"copy_button_{idx}"):
-                pyperclip.copy(request)
+                # Reverse the order of the history list
+                reversed_history = reversed(st.session_state['history'])
+                for idx, request in enumerate(reversed_history):
+                    # Use columns to align the copy button to the right side
+                    col1a, col1b = st.columns([11.5, 1.5])
+                    # Display the request
+                    with col1a:
+                        st.write(f"{request}")
+                        st.markdown("---")
+                    # Add a button to copy the request to clipboard
+                    if col1b.button(f"Copier", key=f"copy_button_{idx}"):
+                        pyperclip.copy(request)
 
 def download_history():
     if 'history' in st.session_state:
@@ -113,7 +120,7 @@ def assistant():
             st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
     else:
         st.title("Speech-to-text Notebook Assistant")
-
+        st.markdown("---")
         # Organize layout with columns and rows
         col1, col2 = st.columns([2, 4])
 
@@ -128,7 +135,7 @@ def assistant():
         with col2:
             if "my_text" not in st.session_state:
                     st.session_state.my_text = ""
-            col2a, col2b = st.columns([3, 2])
+            col2a, col2b = st.columns([7, 2])
             with col2a:
                 st.subheader("Ecrire une requête")
             with col2b:
