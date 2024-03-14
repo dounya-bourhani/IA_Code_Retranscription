@@ -22,10 +22,6 @@ st.set_page_config(
         layout="wide",
     )
 
-st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
-st.sidebar.button("Valider", on_click=submit_token)
-if "token" in st.session_state: 
-    st.sidebar.write("✅ Token activé")
 
 st.subheader("Connecter votre notebook")
 st.text_input("", key="path_input", on_change=submit_path, placeholder= "Insérez votre chemin ici")

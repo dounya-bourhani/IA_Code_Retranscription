@@ -1,6 +1,0 @@
-streamlit
-SpeechRecognition
-pyperclip
-nbformat
-langchain
-huggingface_hub
