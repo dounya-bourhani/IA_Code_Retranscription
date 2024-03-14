@@ -12,8 +12,6 @@ def main():
     st.header("Bienvenue sur Code Generation Assistant")
 
     
-
-
     st.write("""L'application Code Generation est un outil innovant conçu pour aider les développeurs à générer du code rapidement et efficacement en utilisant un assistant virtuel.""")
     
     col1, col2 = st.columns(2)

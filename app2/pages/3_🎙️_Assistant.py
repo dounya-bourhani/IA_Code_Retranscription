@@ -97,7 +97,6 @@ def assistant():
     
     st.sidebar.button("Valider", on_click=submit_token)
 
-
     if len(st.session_state.token) > 2:
         st.sidebar.write("✅ Token activé")
         llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
@@ -127,9 +126,15 @@ def assistant():
 
 
         with col2:
-            st.subheader("Ecrire une requête")
             if "my_text" not in st.session_state:
                     st.session_state.my_text = ""
+            col2a, col2b = st.columns([3, 2])
+            with col2a:
+                st.subheader("Ecrire une requête")
+            with col2b:
+                def clear():
+                    st.session_state.widget = ""
+                st.button("Effacer 🗑️", on_click=clear)
 
             def submit():
                 if st.session_state.widget:
@@ -139,12 +144,12 @@ def assistant():
                 text_input = st.text_input("Insérez du texte ici :", key="widget")
                 button_clicked = st.form_submit_button("Envoyer")
                 submit()
-            print(len(text_input))
+            
             if len(text_input) > 3 and button_clicked:
                 print("send")
                 JupyAgent.make_action(text_input)
 
-
+            
         # Display history below the columns
         display_history()
 
