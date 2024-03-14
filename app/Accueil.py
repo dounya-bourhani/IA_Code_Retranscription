@@ -25,7 +25,7 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-       st.image("icons/typing.jpg", width=500)
+       st.image("app/icons/typing.jpg", width=500)
        st.write("""Que ce soit par le biais de requêtes textuelles écrites à la main...""")
     
     with col2:
