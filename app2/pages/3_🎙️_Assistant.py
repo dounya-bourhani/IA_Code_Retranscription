@@ -177,7 +177,7 @@ def assistant():
                     st.session_state.my_text = st.session_state.widget
                     save_to_history(st.session_state.my_text)
             with st.form("my_form"):
-                text_input = st.text_input("Insérez du texte ici :", key="widget")
+                text_input = st.text_area("Insérez du texte ici :", key="widget")
                 button_clicked = st.form_submit_button("Envoyer")
                 submit()
             
