@@ -36,7 +36,7 @@ def save_to_history(request):
     if request:
         st.session_state['history'].append(request)
 
-def display_history():
+def display_history(agent):
         col1, col2, col3 = st.columns([7, .5, 3])
         # Create a container with a border
         with col1:
@@ -47,7 +47,7 @@ def display_history():
                     st.markdown("Pour retourner en arrière dans le notebook, cliquez sur le bouton:")
                 with col_b:
                     if st.button("⚠️ Précédent"):
-                        JupyAgent.last_version()
+                        agent.last_version()
                 st.markdown('<br></br>', unsafe_allow_html=True)
             with st.container(border = False):
                 st.markdown("---")  # Add a horizontal line for separation
@@ -176,17 +176,17 @@ def assistant():
                 if st.session_state.widget:
                     st.session_state.my_text = st.session_state.widget
                     save_to_history(st.session_state.my_text)
-            with st.form("my_form"):
-                text_input = st.text_area("Insérez du texte ici :", key="widget")
-                button_clicked = st.form_submit_button("Envoyer")
-                submit()
-            
-            if len(text_input) > 3 and button_clicked:
-                print("send")
-                JupyAgent.make_action(text_input)
-            
-        # Display history below the columns
-        display_history()
+        with st.form("my_form"):
+            text_input = st.text_area("Insérez du texte ici :", key="widget")
+            button_clicked = st.form_submit_button("Envoyer")
+            submit()
+        
+        if len(text_input) > 3 and button_clicked:
+            print("send")
+            JupyAgent.make_action(text_input)
+        
+    # Display history below the columns
+    display_history(agent=JupyAgent)
 
 
 
