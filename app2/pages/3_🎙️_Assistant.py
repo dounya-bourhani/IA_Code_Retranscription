@@ -38,7 +38,7 @@ def save_to_history(request):
 
 def display_history():
     if 'history' in st.session_state:
-        col1, col2 = st.columns([7, 3.5])
+        col1, col2, col3 = st.columns([6, 1, 3])
         # Create a container with a border
         with col1:
             with st.container(border = False):
@@ -66,6 +66,24 @@ def display_history():
                     # Add a button to copy the request to clipboard
                     if col1b.button(f"Copier", key=f"copy_button_{idx}"):
                         pyperclip.copy(request)
+
+        with col3:
+            st.subheader("Aide :")
+            st.markdown("<b>Création d'une cellule / markdown</b>", unsafe_allow_html=True)
+            st.text("• Créée une cellule ...")
+            st.text("• Créée un markdown ...")
+            st.markdown("""
+                        <b>Requête sur une cellule / markdown spécifique</b><br>
+                        <span style='font-size: 12px;'><i>Clé possibles : ## A MODIFIER ## ; ## A SUPPRIMER ## ; ## A EXPLIQUER ##</i></span>""", unsafe_allow_html=True)
+            st.text("• Modifie ... avec la clé Jupycoder")
+            st.text("• Supprime ... avec la clé Jupycoder")
+            st.text("• Explique ... avec la clé Jupycoder")
+            st.markdown("<b>Requête sur la dernière cellule / markdown</b>", unsafe_allow_html=True)
+            st.text("• Modifie la dernière cellule ...")
+            st.text("• Supprime la dernière cellule ...")
+            st.text("• Expliquer la dernière cellule ...")
+            st.markdown("<b>Expliquer le notebook</b>", unsafe_allow_html=True)
+            st.text("• Résume le notebook")
 
 def download_history():
     if 'history' in st.session_state:
