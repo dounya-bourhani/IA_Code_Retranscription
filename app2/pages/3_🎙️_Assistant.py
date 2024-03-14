@@ -110,8 +110,8 @@ def assistant():
     
     ## sidebar token insert
     def submit_token():
-        if "token" not in st.session_state:
-                st.session_state.token = ""
+        #if "token" not in st.session_state:
+        #        st.session_state.token = ""
         if st.session_state.token_input:
             st.session_state.token = st.session_state.token_input
 
