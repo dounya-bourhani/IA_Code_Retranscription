@@ -93,10 +93,11 @@ def assistant():
     if "token" not in st.session_state:
         st.session_state.token = ""
 
-    st.sidebar.button("Valider", on_click=submit_token)
-
     st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
     
+    st.sidebar.button("Valider", on_click=submit_token)
+
+
     if len(st.session_state.token) > 2:
         st.sidebar.write("✅ Token activé")
         llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
