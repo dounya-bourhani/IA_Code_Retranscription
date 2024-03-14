@@ -92,6 +92,8 @@ class JupyCoder():
             response = response.split("Notes:")[0].strip()
         if 'Ce code' in response:
             response = response.split("Ce code")[0].strip()
+        if 'Le code' in response:
+            response = response.split("Le code")[0].strip()
         if 'Ici' in response:
             response = response.split("Ici")[0].strip()
         if 'This line' in response:
@@ -102,6 +104,8 @@ class JupyCoder():
             response = response.split("Explication")[0].strip()
         if 'Notez'  in response:
             response = response.split("Explication")[0].strip()
+        if 'Comments:'  in response:
+            response = response.split("Comments:")[0].strip()
         return response
     
     def markdown_generation(self,
@@ -165,7 +169,28 @@ class JupyCoder():
             prompt_explanation_templ = PromptTemplate(input_variables=["query", "code"], template=prompt_explanation)
             chain_explanation = LLMChain(prompt=prompt_explanation_templ, llm=self.llm)
             answer = chain_explanation.invoke({"query": query, "code": code})
-            return answer["text"].split("Code:")[1].strip()
+            response = answer["text"].split("Code:")[1].strip()
+            if 'Explanation' in response:
+                response = response.split("Explanation:")[0].strip()
+            if 'Notes' in response:
+                response = response.split("Notes:")[0].strip()
+            if 'Ce code' in response:
+                response = response.split("Ce code")[0].strip()
+            if 'Le code' in response:
+                response = response.split("Le code")[0].strip()
+            if 'Ici' in response:
+                response = response.split("Ici")[0].strip()
+            if 'This line' in response:
+                response = response.split("This line")[0].strip()
+            if 'This code' in response:
+                response = response.split("This code")[0].strip()
+            if 'Explication' in response:
+                response = response.split("Explication")[0].strip()
+            if 'Notez'  in response:
+                response = response.split("Explication")[0].strip()
+            if 'Comments:'  in response:
+                response = response.split("Comments:")[0].strip()
+            return response
     
     def chain_query_augmentation(self, 
                                  query: str) -> str:
@@ -285,11 +310,10 @@ class JupyCoder():
         if cell_id[0] < len(nb.cells):
             #get the cell
             cell = nb.cells[cell_id[0]]
-            print(cell)
             #update the cell
             cell.source = content
             #save the notebook
-            print(cell)
+            print(content)
             self.save_notebook(nb_path, nb)
         else:
             print("L'index de cellule spécifié est invalide.")
