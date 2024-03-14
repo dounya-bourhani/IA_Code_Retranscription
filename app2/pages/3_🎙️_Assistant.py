@@ -173,7 +173,15 @@ def assistant():
             if len(text_input) > 3 and button_clicked:
                 print("send")
                 JupyAgent.make_action(text_input)
-
+        
+        st.markdown('<br></br>', unsafe_allow_html=True)
+        col3, col4 = st.columns([4, 1])
+        with col3:
+            st.markdown("Pour retourner en arrière dans le notebook, cliquez sur le bouton:")
+        with col4:
+            if st.button("⚠️ Précédent"):
+                JupyAgent.last_version()
+        st.markdown('<br></br>', unsafe_allow_html=True)
             
         # Display history below the columns
         display_history()
