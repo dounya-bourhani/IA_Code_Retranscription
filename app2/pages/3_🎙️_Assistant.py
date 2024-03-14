@@ -89,12 +89,12 @@ def assistant():
                 st.session_state.token = ""
         if st.session_state.token_input:
             st.session_state.token = st.session_state.token_input
-            st.session_state.token_input = ""
 
     st.sidebar.button("Valider", on_click=submit_token)
 
     hf_api_key = st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
     if len(hf_api_key) > 2:
+        print(hf_api_key)
         llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
                                 huggingfacehub_api_token=hf_api_key,
                                 model_kwargs={"temperature": 0.1, "max_new_tokens": 500})
