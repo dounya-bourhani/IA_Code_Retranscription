@@ -7,16 +7,13 @@ def main():
         layout="wide",
     )
 
-    st.title("Speech-to-text Notebook Assistant")
+    st.title("JupyCoder - Notebook Assistant")
 
-    st.header("Bienvenue sur Code Generation Assistant")
 
     
-    st.write("""L'application Code Generation est un outil innovant conçu pour aider les développeurs à générer du code rapidement et efficacement en utilisant un assistant virtuel.""")
-    
-    col1, col2 = st.columns(2)
-    
-    st.write("""les utilisateurs peuvent interagir avec l'assistant pour exprimer leurs besoins en matière de code.""")
+    st.write("""L'application JupyCoder est un outil innovant conçu pour aider les développeurs à générer du code rapidement et efficacement en utilisant un assistant virtuel.""")
+    st.write("""Les utilisateurs peuvent interagir avec l'assistant pour exprimer leurs besoins en matière de code.""")
+    st.write("""Par la suite, JupyCoder permet au code généré d'être automatiquement envoyé dans votre notebook.""")
 
 if __name__ == "__main__":
     main()
