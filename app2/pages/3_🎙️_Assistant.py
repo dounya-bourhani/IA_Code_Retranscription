@@ -94,11 +94,12 @@ def assistant():
     st.sidebar.button("Valider", on_click=submit_token)
 
     hf_api_key = st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
-    llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
+    if len(hf_api_key) > 2:
+        llm =  HuggingFaceHub(repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1", 
                                 huggingfacehub_api_token=hf_api_key,
                                 model_kwargs={"temperature": 0.1, "max_new_tokens": 500})
     
-    JupyAgent = JupyCoder(st.session_state.path, 
+        JupyAgent = JupyCoder(st.session_state.path, 
                           llm)
     if "token" in st.session_state: 
         st.sidebar.write("✅ Token activé")
