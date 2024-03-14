@@ -135,7 +135,9 @@ def assistant():
 
     ## Chatbot
     if 'path' not in st.session_state:
-            st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
+        st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
+    elif len(st.session_state.token) < 2:
+        st.header("👈 Merci de faire valider votre Token HuggingFace")
     else:
         st.title("Speech-to-text Notebook Assistant")
         st.markdown("---")
