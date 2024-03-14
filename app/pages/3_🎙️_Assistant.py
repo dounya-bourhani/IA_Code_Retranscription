@@ -35,7 +35,7 @@ def save_to_history(request):
 def display_history():
     if 'history' in st.session_state:
         # Create a horizontal layout
-        header_col, download_col = st.columns([7.5,3])
+        header_col, download_col = st.columns([9.7,3])
 
         # Display the "Historique" title
         with header_col:
@@ -73,47 +73,64 @@ def download_history():
 ##################################### PAGE ##########################################
                 
 def assistant():
-    if 'file' not in st.session_state:
-            st.session_state['file'] = ""
-    
     st.set_page_config(
         page_title="Speech-to-text",
         page_icon="🎙️",
         layout="wide",
     )
+    
+    ## sidebar token insert
+    def submit_token():
+        if "token" not in st.session_state:
+                st.session_state.token = ""
+        if st.session_state.token_input:
+            st.session_state.token = st.session_state.token_input
+            st.session_state.token_input = ""
 
-    st.title("Speech-to-text Notebook Assistant")
 
-    # Organize layout with columns and rows
-    col1, col2 = st.columns([2, 4])
-
-    with col1:
-        st.subheader("Enregistrement voix")
-        if st.button("🎙️"):
-            text = transcribe_speech()
-            save_to_history(text)
-
-    with col2:
-        st.subheader("Ecrire une requête")
-        if "my_text" not in st.session_state:
-                st.session_state.my_text = ""
-
-        def submit():
-            if st.session_state.widget:
-                st.session_state.my_text = st.session_state.widget
-                st.session_state.widget = ""
-                save_to_history(st.session_state.my_text)
-
-        st.text_input("Insérez du texte ici :", key="widget", on_change=submit)
-        st.button("Envoyer", on_click=submit)
+    st.sidebar.text_input("Insérer un token Hugging Face 🤗 :", key="token_input", on_change=submit_token, type = 'password')
+    
+    st.sidebar.button("Valider", on_click=submit_token)
+    if "token" in st.session_state: 
+        st.sidebar.write("✅ Token activé")
     
 
-    # Print current notebook
-    st.write("Notebook :", st.session_state['file'])
+    ## Chatbot
+    if 'file' not in st.session_state:
+            st.header("👈 Merci de vous connecter à un notebook en cliquant sur l'onglet 'Connexion avec notebook'")
+    else:
+        st.title("Speech-to-text Notebook Assistant")
+
+        # Organize layout with columns and rows
+        col1, col2 = st.columns([2, 4])
+
+        with col1:
+            st.subheader("Enregistrement voix")
+            if st.button("🎙️ Enregistrer"):
+                text = transcribe_speech()
+                save_to_history(text)
+
+        with col2:
+            st.subheader("Ecrire une requête")
+            if "my_text" not in st.session_state:
+                    st.session_state.my_text = ""
+
+            def submit():
+                if st.session_state.widget:
+                    st.session_state.my_text = st.session_state.widget
+                    st.session_state.widget = ""
+                    save_to_history(st.session_state.my_text)
+
+            st.text_input("Insérez du texte ici :", key="widget", on_change=submit)
+            st.button("Envoyer", on_click=submit)
+        
+
+        # Print current notebook
+        st.write("Notebook :", st.session_state['file'])
 
 
-    # Display history below the columns
-    display_history()
+        # Display history below the columns
+        display_history()
 
 
 
