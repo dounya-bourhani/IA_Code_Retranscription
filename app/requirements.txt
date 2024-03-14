@@ -1,6 +1,6 @@
-streamlit
-SpeechRecognition
-pyperclip
-nbformat
-langchain
-huggingface_hub
+streamlit==1.32.1
+SpeechRecognition==3.10.1
+pyperclip==1.8.2
+nbformat==5.10.2
+langchain==0.1.9
+huggingface-hub==0.21.3
