@@ -24,13 +24,13 @@ def main():
     
     col1, col2 = st.columns(2)
 
-    #with col1:
-    #    st.image("C:/Users/dbourhani/Documents/PROJET_IA/IA_Code_Retranscription/front/icons/typing.jpg", width=500)
-    #    st.write("""Que ce soit par le biais de requêtes textuelles écrites à la main...""")
+    with col1:
+       st.image("./icons/typing.jpg", width=500)
+       st.write("""Que ce soit par le biais de requêtes textuelles écrites à la main...""")
     
-    #with col2:
-    #    st.image("C:/Users/dbourhani/Documents/PROJET_IA/IA_Code_Retranscription/front/icons/reco_vocale.jpg", width=500)
-    #    st.write("""ou de requêtes détectées par reconnaissance vocale...""")
+    with col2:
+       st.image("./icons/reco_vocale.jpg", width=500)
+       st.write("""ou de requêtes détectées par reconnaissance vocale...""")
                  
     st.write("""les utilisateurs peuvent interagir avec l'assistant pour 
              exprimer leurs besoins en matière de code.""")
