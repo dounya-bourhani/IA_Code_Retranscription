@@ -13,11 +13,9 @@ import pandas as pd
 import numpy as np
 # On lit nos variables environnments avec nos clés APIs
 import os
-from dotenv import load_dotenv, find_dotenv
 
 import re
 
-_ = load_dotenv(find_dotenv())
 
 class JupyCoder():
     def __init__(self, 
@@ -57,10 +55,9 @@ class JupyCoder():
         Voici les fonctions pour résumer le notebook.
         - summary_all : Créer un résumé de tous le notebook
         
+        Utilise une fonction des listes précédentes pour répondre à la "QUERY" suivante. 
         "QUERY": 
         {query}
-
-        Limites toi à une fonction. 
         [/INST] 
         
         Nom de la fonction à choisir:
@@ -79,7 +76,9 @@ class JupyCoder():
         {history}
 
         Ajoutes du texte supplémentaire comme commentaire si besoin. 
-        Limite ta réponse à des lignes de code.
+        Si tu crées une fonction, ajoutes un docstring et penses à retourner la variable d'intérêt. 
+
+        Limite ta réponse à des lignes de code. N'ajoutes pas d'explication.
         [/INST] 
 
         Le code python est:"""
@@ -89,10 +88,21 @@ class JupyCoder():
         response = answer["text"].split("est:")[1].strip()
         if 'Explanation' in response:
             response = response.split("Explanation:")[0].strip()
-        elif 'Notes' in response:
+        if 'Notes' in response:
             response = response.split("Notes:")[0].strip()
+        if 'Ce code' in response:
+            response = response.split("Ce code")[0].strip()
+        if 'Ici' in response:
+            response = response.split("Ici")[0].strip()
+        if 'This line' in response:
+            response = response.split("This line")[0].strip()
+        if 'This code' in response:
+            response = response.split("This code")[0].strip()
+        if 'Explication' in response:
+            response = response.split("Explication")[0].strip()
+        if 'Notez'  in response:
+            response = response.split("Explication")[0].strip()
         return response
-    
     
     def markdown_generation(self,
                             query:str) -> str:
@@ -176,7 +186,8 @@ class JupyCoder():
                       list_codes):
             prompt_summary =  """[INST]Ton rôle est de résumer  en language naturel les commandes python réalisée dans ce notebook:
             {codes}
-
+            
+            Utilise simplement les lignes de code données. S'il n'y a pas de code, expliques que le notebook est vide.
             Limite toi à un paragraphe. 
             [/INST] 
 
@@ -240,6 +251,20 @@ class JupyCoder():
         new_cell = new_markdown_cell(content)
         #append the cell to the notebook
         nb.cells.append(new_cell)
+        #save the notebook
+        self.save_notebook(nb_path, nb)
+
+    def create_explicate_markdown(self,
+                        nb_path,
+                        ind, 
+                        content):
+        ind = ind[0]
+        #load notebook
+        nb = self.load_notebook(nb_path)
+        #create a new cell
+        new_cell = new_markdown_cell(content)
+        #append the cell to the notebook
+        nb.cells.insert(ind+1,new_cell)
         #save the notebook
         self.save_notebook(nb_path, nb)
 
@@ -358,7 +383,7 @@ class JupyCoder():
         all_codes = [cell["source"] for cell in nb.cells]
         ind_update = [ind for ind, cell in enumerate(all_codes)  if '## A EXPLIQUER ##' in cell]
         code = all_codes[ind_update[0]]
-        return code 
+        return ind_update, code 
         
     def get_all_cell(self,
                       nb_path):
@@ -380,9 +405,9 @@ class JupyCoder():
             history = list_codes[-5:]
             code=self.code_generation(query, history)
             code = code.replace('\_', '_').replace('`',"").replace("python", "").replace('\#', '#')
-            pattern =r'[=-]{2,}'
+            pattern =r'[=-]{3,}'
             clean_code = re.sub(pattern, '', code)
-            pattern =r' {2,}'
+            pattern =r' {5,}'
             clean_code = re.sub(pattern, '', clean_code)
             pattern = '&#x200B;'
             clean_code = re.sub(pattern, '', clean_code)
@@ -390,7 +415,7 @@ class JupyCoder():
             self.create_code_cell(path, clean_code)
         elif "create_markdown" in router_action:
             text = self.markdown_generation(query)
-            pattern =r'[=-]{2,}'
+            pattern =r'[=-]{3,}'
             clean_text = re.sub(pattern, '', text)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', clean_text)
@@ -400,7 +425,7 @@ class JupyCoder():
             print(code)
             upd_code = self.code_update(query, code)
             upd_code = upd_code.replace('\_', '_').replace('`',"").replace("python", "")
-            pattern =r'[=-]{2,}'
+            pattern =r'[=-]{3,}'
             clean_code = re.sub(pattern, '', upd_code)
             pattern =r' {2,}'
             clean_code = re.sub(pattern, '', clean_code)
@@ -417,7 +442,7 @@ class JupyCoder():
             print(code)
             upd_code = self.code_update(query, code)
             upd_code = upd_code.replace('\_', '_').replace('`',"").replace("python", "")
-            pattern =r'[=-]{2,}'
+            pattern =r'[=-]{3,}'
             clean_code = re.sub(pattern, '', upd_code)
             pattern =r' {2,}'
             clean_code = re.sub(pattern, '', clean_code)
@@ -427,7 +452,7 @@ class JupyCoder():
             ind, text = self.get_cell_to_update(path)
             text= text.replace('## A MODIFIER ##', '')
             upd_markdown = self.markdown_update(text, query)
-            pattern =r'[=-]{2,}'
+            pattern =r'[=-]{3,}'
             clean_text = re.sub(pattern, '', upd_markdown)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', clean_text)
@@ -443,15 +468,19 @@ class JupyCoder():
             clean_text = re.sub(pattern, '', explication)
             self.create_markdown(path, clean_text)
         elif "explain_selected_cell" in router_action:
-            code = self.get_cell_to_explain(path)
+            ind, code = self.get_cell_to_explain(path)
             code = code.replace('## A EXPLIQUER ##', '')
             explication = self.code_explanation(code)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', explication)
-            self.create_markdown(path, clean_text)
+            self.update_cell(path, code.strip(), ind)
+            self.create_explicate_markdown(path, ind, clean_text)
         elif "summary_all" in router_action:
             list_codes = self.get_all_cell(self.path)
-            combined_code = '\n'.join(cell for cell in list_codes)
+            if len(list_codes) > 0 :
+                combined_code = '\n'.join(cell for cell in list_codes)
+            else: 
+                combined_code = 'Pas de code dans ce notebook.'
             resume = self.chain_summary(combined_code)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', resume)
