@@ -55,10 +55,9 @@ class JupyCoder():
         Voici les fonctions pour résumer le notebook.
         - summary_all : Créer un résumé de tous le notebook
         
+        Utilise une fonction des listes précédentes pour répondre à la "QUERY" suivante. 
         "QUERY": 
         {query}
-
-        Limites toi à une fonction. 
         [/INST] 
         
         Nom de la fonction à choisir:
@@ -77,7 +76,9 @@ class JupyCoder():
         {history}
 
         Ajoutes du texte supplémentaire comme commentaire si besoin. 
-        Limite ta réponse à des lignes de code.
+        Si tu crées une fonction, ajoutes un docstring et penses à retourner la variable d'intérêt. 
+        
+        Limite ta réponse à des lignes de code. N'ajoutes pas d'explication.
         [/INST] 
 
         Le code python est:"""
@@ -87,8 +88,19 @@ class JupyCoder():
         response = answer["text"].split("est:")[1].strip()
         if 'Explanation' in response:
             response = response.split("Explanation:")[0].strip()
-        elif 'Notes' in response:
+        if 'Notes' in response:
             response = response.split("Notes:")[0].strip()
+        if 'Ce code' in response:
+            response = response.split("Ce code")[0].strip()
+        if 'Ici' in response:
+            response = response.split("Ici")[0].strip()
+        if 'This line' in response:
+            response = response.split("This line")[0].strip()
+        if 'This code' in response:
+            response = response.split("This code")[0].strip()
+        if 'Explication' in response:
+            response = response.split("Explication")[0].strip()
+
         return response
     
     
@@ -174,7 +186,8 @@ class JupyCoder():
                       list_codes):
             prompt_summary =  """[INST]Ton rôle est de résumer  en language naturel les commandes python réalisée dans ce notebook:
             {codes}
-
+            
+            Utilise simplement les lignes de code données. S'il n'y a pas de code, expliques que le notebook est vide.
             Limite toi à un paragraphe. 
             [/INST] 
 
@@ -449,7 +462,10 @@ class JupyCoder():
             self.create_markdown(path, clean_text)
         elif "summary_all" in router_action:
             list_codes = self.get_all_cell(self.path)
-            combined_code = '\n'.join(cell for cell in list_codes)
+            if len(list_codes) > 0 :
+                combined_code = '\n'.join(cell for cell in list_codes)
+            else: 
+                combined_code = 'Pas de code dans ce notebook.'
             resume = self.chain_summary(combined_code)
             pattern =r' {2,}'
             clean_text = re.sub(pattern, '', resume)
